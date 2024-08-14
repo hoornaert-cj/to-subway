@@ -85,7 +85,7 @@ function findParksNearStation(station) {
             for (let j = 0; j < greenSpaceLatLngs[i].length; j++) {
                 for (let k = 0; k < greenSpaceLatLngs[i][j].length; k++) {
                     const distance = map.distance(stationLatLng, greenSpaceLatLngs[i][j][k]);
-                    if (distance <= 1000) { // 1 km radius
+                    if (distance <= 500) {
                         const parkItem = document.createElement('li');
                         parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
                         parksList.appendChild(parkItem);
