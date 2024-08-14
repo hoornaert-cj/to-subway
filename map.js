@@ -12,11 +12,17 @@ fetch('data/Green Spaces.geojson')
     .then(response => response.json())
     .then(data => {
         greenSpacesLayer = L.geoJSON(data, {
+            style: function (feature) {
+                return {
+                    color: 'orange',
+                    weight: 1,
+                    fillOpacity: 0.5
+                };
+            },
             onEachFeature: function (feature, layer) {
                 console.log('Green Space Loaded:', feature.properties.AREA_NAME);
             }
         }).addTo(map);
-        console.log('Green spaces layer loaded:', greenSpacesLayer);
     })
     .catch(error => console.log('Error loading Green Spaces GeoJSON:', error));
 
@@ -34,12 +40,8 @@ fetch('data/stations.geojson')
                         popupAnchor: [0, -32]
                     })
                 });
-            },
-            onEachFeature: function (feature, layer) {
-                console.log('Station Loaded:', feature.properties.stop_name);
             }
         }).addTo(map);
-        console.log('Stations layer loaded:', stationsLayer);
 
         populateStationDropdown(stationsData);
     })
@@ -55,34 +57,51 @@ function populateStationDropdown(stationsData) {
     });
 
     dropdown.addEventListener('change', function () {
-        const selectedStationIndex = dropdown.value;
-        if (selectedStationIndex !== "") {
-            findParksNearStation(stationsData.features[selectedStationIndex]);
+        const selectedIndex = dropdown.value;
+        if (selectedIndex !== "") {
+            const selectedStation = stationsData.features[selectedIndex];
+            findParksNearStation(selectedStation);
         }
     });
 }
 
 function findParksNearStation(station) {
-    const stationLatLng = L.latLng(station.geometry.coordinates[1], station.geometry.coordinates[0]);
-    const radius = 500; // 1 kilometer in meters
+    const stationLatLng = [station.geometry.coordinates[1], station.geometry.coordinates[0]];
 
-    console.log('Finding parks near station:', station.properties.stop_name, 'at', stationLatLng);
+    console.log('Selected Station:', station.properties.stop_name);
+    console.log('Station Coordinates:', stationLatLng);
+
+    // Attempt to zoom to the station location
+    map.setView(stationLatLng, 16);
 
     const parksList = document.getElementById('parks-list');
     parksList.innerHTML = ""; // Clear previous results
 
+    let parkFound = false;
+
     greenSpacesLayer.eachLayer(function(greenSpaceLayer) {
-        const greenSpaceLatLng = greenSpaceLayer.getBounds().getCenter();
-        const distance = stationLatLng.distanceTo(greenSpaceLatLng);
+        const greenSpaceLatLngs = greenSpaceLayer.getLatLngs();
+        for (let i = 0; i < greenSpaceLatLngs.length; i++) {
+            for (let j = 0; j < greenSpaceLatLngs[i].length; j++) {
+                for (let k = 0; k < greenSpaceLatLngs[i][j].length; k++) {
+                    const distance = map.distance(stationLatLng, greenSpaceLatLngs[i][j][k]);
+                    if (distance <= 1000) { // 1 km radius
+                        const parkItem = document.createElement('li');
+                        parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
+                        parksList.appendChild(parkItem);
 
-        if (distance <= radius) {
-            const parkItem = document.createElement('li');
-            parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
-            parksList.appendChild(parkItem);
-
-            console.log('Park within 1km:', greenSpaceLayer.feature.properties.AREA_NAME);
-        } else {
-            console.log('No intersection for:', greenSpaceLayer.feature.properties.AREA_NAME);
+                        console.log('Park within 1km:', greenSpaceLayer.feature.properties.AREA_NAME);
+                        parkFound = true;
+                        break;
+                    }
+                }
+                if (parkFound) break;
+            }
+            if (parkFound) break;
         }
     });
+
+    if (!parkFound) {
+        console.log('No parks found within 1km of the selected station.');
+    }
 }
