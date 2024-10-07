@@ -32,7 +32,7 @@ fetch('data/stations.geojson')
     .then(stationsData => {
         stationsLayer = L.geoJSON(stationsData, {
             pointToLayer: function (feature, latlng) {
-                return L.marker(latlng, {
+                const marker = L.marker(latlng, {
                     icon: L.icon({
                         iconUrl: 'icons/Subway-Icon.png',
                         iconSize: [32, 32],
@@ -40,6 +40,13 @@ fetch('data/stations.geojson')
                         popupAnchor: [0, -32]
                     })
                 });
+
+                // Add click event listener for the marker
+                marker.on('click', function () {
+                    findParksNearStation(feature); // Call the function when marker is clicked
+                });
+
+                return marker;
             }
         }).addTo(map);
 
@@ -56,6 +63,7 @@ function populateStationDropdown(stationsData) {
         dropdown.add(option);
     });
 
+    // When user selects from dropdown
     dropdown.addEventListener('change', function () {
         const selectedIndex = dropdown.value;
         if (selectedIndex !== "") {
@@ -79,13 +87,13 @@ function findParksNearStation(station) {
 
     let parkFound = false;
 
-    greenSpacesLayer.eachLayer(function(greenSpaceLayer) {
+    greenSpacesLayer.eachLayer(function (greenSpaceLayer) {
         const greenSpaceLatLngs = greenSpaceLayer.getLatLngs();
         for (let i = 0; i < greenSpaceLatLngs.length; i++) {
             for (let j = 0; j < greenSpaceLatLngs[i].length; j++) {
                 for (let k = 0; k < greenSpaceLatLngs[i][j].length; k++) {
                     const distance = map.distance(stationLatLng, greenSpaceLatLngs[i][j][k]);
-                    if (distance <= 500) {
+                    if (distance <= 1000) { // Use 1km buffer
                         const parkItem = document.createElement('li');
                         parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
                         parksList.appendChild(parkItem);
