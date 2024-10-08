@@ -14,8 +14,8 @@ fetch('data/Green Spaces.geojson')
         greenSpacesLayer = L.geoJSON(data, {
             style: function (feature) {
                 return {
-                    color: 'orange',
-                    weight: 1,
+                    color: '#6A9C89',
+                    weight: 2,
                     fillOpacity: 0.5
                 };
             },
@@ -43,7 +43,7 @@ fetch('data/stations.geojson')
 
                 // Add click event listener for the marker
                 marker.on('click', function () {
-                    findParksNearStation(feature); // Call the function when marker is clicked
+                    findParksNearStation(feature);
                 });
 
                 return marker;
@@ -83,7 +83,7 @@ function findParksNearStation(station) {
     map.setView(stationLatLng, 16);
 
     const parksList = document.getElementById('parks-list');
-    parksList.innerHTML = ""; // Clear previous results
+    parksList.innerHTML = "";
 
     let parkFound = false;
 
@@ -93,7 +93,7 @@ function findParksNearStation(station) {
             for (let j = 0; j < greenSpaceLatLngs[i].length; j++) {
                 for (let k = 0; k < greenSpaceLatLngs[i][j].length; k++) {
                     const distance = map.distance(stationLatLng, greenSpaceLatLngs[i][j][k]);
-                    if (distance <= 1000) { // Use 1km buffer
+                    if (distance <= 500) {
                         const parkItem = document.createElement('li');
                         parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
                         parksList.appendChild(parkItem);
