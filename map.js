@@ -79,13 +79,14 @@ function findParksNearStation(station) {
     console.log('Selected Station:', station.properties.stop_name);
     console.log('Station Coordinates:', stationLatLng);
 
-    // Attempt to zoom to the station location
+    // Zoom to the station location
     map.setView(stationLatLng, 16);
 
     const parksList = document.getElementById('parks-list');
-    parksList.innerHTML = "";
+    parksList.innerHTML = ""; // Clear previous results
 
     let parkFound = false;
+    let parksArray = []; // Array to store park names
 
     greenSpacesLayer.eachLayer(function (greenSpaceLayer) {
         const greenSpaceLatLngs = greenSpaceLayer.getLatLngs();
@@ -94,11 +95,7 @@ function findParksNearStation(station) {
                 for (let k = 0; k < greenSpaceLatLngs[i][j].length; k++) {
                     const distance = map.distance(stationLatLng, greenSpaceLatLngs[i][j][k]);
                     if (distance <= 500) {
-                        const parkItem = document.createElement('li');
-                        parkItem.textContent = greenSpaceLayer.feature.properties.AREA_NAME;
-                        parksList.appendChild(parkItem);
-
-                        console.log('Park within 1km:', greenSpaceLayer.feature.properties.AREA_NAME);
+                        parksArray.push(greenSpaceLayer.feature.properties.AREA_NAME);
                         parkFound = true;
                         break;
                     }
@@ -109,7 +106,19 @@ function findParksNearStation(station) {
         }
     });
 
-    if (!parkFound) {
+    if (parksArray.length > 0) {
+        // Sort the parks alphabetically
+        parksArray.sort();
+
+        // Add sorted parks to the list
+        parksArray.forEach(function (parkName) {
+            const parkItem = document.createElement('li');
+            parkItem.textContent = parkName;
+            parksList.appendChild(parkItem);
+        });
+
+        console.log('Parks within 1km:', parksArray);
+    } else {
         console.log('No parks found within 1km of the selected station.');
     }
 }
