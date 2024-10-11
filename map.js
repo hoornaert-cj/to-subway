@@ -83,10 +83,10 @@ function findParksNearStation(station) {
     map.setView(stationLatLng, 16);
 
     const parksList = document.getElementById('parks-list');
-    parksList.innerHTML = ""; // Clear previous results
+    parksList.innerHTML = "";
 
     let parkFound = false;
-    let parksArray = []; // Array to store park names
+    let parksArray = [];
 
     greenSpacesLayer.eachLayer(function (greenSpaceLayer) {
         const greenSpaceLatLngs = greenSpaceLayer.getLatLngs();
